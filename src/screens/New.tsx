@@ -5,11 +5,13 @@ import {
   View,
   Text,
   TextInput,
+  Alert,
 } from "react-native";
 import { BackButton } from "../components/BackButton";
 import { CheckBox } from "../components/CheckBox";
 import { Feather } from "@expo/vector-icons";
 import colors from "tailwindcss/colors";
+import { api } from "../lib/axios";
 
 export const avaiableWeekDays = [
   "Domingo",
@@ -23,6 +25,7 @@ export const avaiableWeekDays = [
 
 export function New() {
   const [weekDays, setWeekDays] = useState<number[]>([]);
+  const [title, setTitle] = useState("");
 
   function handleToggleWeekDay(weekDayIndex: number) {
     if (weekDays.includes(weekDayIndex)) {
@@ -31,6 +34,30 @@ export function New() {
       );
     } else {
       setWeekDays((prevState) => [...prevState, weekDayIndex]);
+    }
+  }
+
+  async function handleCreateNewHabit() {
+    try {
+      if (!title.trim() || weekDays.length === 0) {
+        return Alert.alert(
+          "Novo Hábito",
+          "Informe o Nome do Habito e Escolha pelo menos uma dia"
+        );
+      }
+
+      await api.post("/habits", {
+        title,
+        weekDays,
+      });
+
+      setTitle("");
+      setWeekDays([]);
+
+      Alert.alert("Novo Hábito", "Novo Hábito Criado  com Sucesso");
+    } catch (error) {
+      console.log(error);
+      Alert.alert("Ops", "Não foi possivel criar um Novo Hábito");
     }
   }
 
@@ -52,6 +79,8 @@ export function New() {
           placeholder="Ex: Ir a Academia, Dormir bem , etc..."
           className="h-12 pl-4 rounded-lg mt-3 bg-zinc-900 text-white border-2  border-zinc-800 focus:border-green-600"
           placeholderTextColor={colors.zinc[400]}
+          onChangeText={setTitle}
+          value={title}
         />
 
         <Text className="font-semibold mt-4 mb-3 text-white text-base">
@@ -71,6 +100,7 @@ export function New() {
         <TouchableOpacity
           className="w-full h-14 flex-row items-center justify-center bg-green-600 rounded-md mt-6"
           activeOpacity={0.7}
+          onPress={handleCreateNewHabit}
         >
           <Feather name="check" size={20} color={colors.white} />
           <Text className="font-semibold text-base text-white ml-2 ">
